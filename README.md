@@ -88,15 +88,19 @@ return number is
   qr_id_ number;
   user_id_ varchar2(30) := ifsapp.fnd_session_api.get_fnd_user;
 
-  c_ utl_tcp_connection;
+  c_ utl_tcp.connection;
   r_ pls_integer;
 begin
+  if (regexp_like(quick_report_, '^\d$')) then
+    qr_id_ := to_number(quick_report_);
+  end if;
+
   select
     qr.quick_report_id
   into
-    quick_report_id_
+    qr_id_
   from ifsapp.quick_report qr
-  where qr.quick_report_id = quick_report_
+  where (qr_id_ is not null and qr.quick_report_id = qr_id_)
      or lower(qr.description) = lower(quick_report_)
   ;
 
