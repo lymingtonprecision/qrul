@@ -1,4 +1,4 @@
-(defproject qrul "0.1.0-SNAPSHOT"
+(defproject qrul "0.1.0"
   :description "Quick Report Usage Logger"
   :url "https://github.com/lymingtonprecision/qrul"
   :license {:name "Eclipse Public License"
