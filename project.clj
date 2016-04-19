@@ -36,4 +36,13 @@
 
   :profiles
   {:uberjar {:aot :all
-             :uberjar-name "qrul-standalone.jar"}})
+             :uberjar-name "qrul-standalone.jar"}}
+
+  :release-tasks
+  [["vcs" "assert-committed"]
+   ["change" "version" "leiningen.release/bump-version" "release"]
+   ["vcs" "commit"]
+   ["vcs" "tag"]
+   ["change" "version" "leiningen.release/bump-version"]
+   ["vcs" "commit"]
+   ["vcs" "push"]])
