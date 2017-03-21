@@ -179,7 +179,7 @@ formatted string (without a key) as follows:
 
 ## License
 
-Copyright © 2016 Lymington Precision Engineers Co. Ltd.
+Copyright © 2017 Lymington Precision Engineers Co. Ltd.
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
