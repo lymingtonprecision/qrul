@@ -11,17 +11,12 @@
             [manifold.stream :as stream]
 
             ;; kafka publisher
-            [franzy.admin.zookeeper.client :refer [make-zk-utils]]
-            [franzy.admin.configuration]
-            [franzy.admin.topics :as topics]
-            [franzy.admin.cluster :as zk-cluster]
             [franzy.clients.producer.client :refer [make-producer]]
             [franzy.clients.producer.defaults :refer [make-default-producer-options]]
             [franzy.clients.producer.protocols :as producer]
             [franzy.serialization.json.serializers :refer [json-serializer]]))
 
 (def ^:dynamic *default-port* 13478)
-(def ^:dynamic *default-kafka-topic* "quick-report-usage")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; app protocols
@@ -89,29 +84,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; kafka
 
-(def topic-config
-  {"cleanup.policy" "delete"
-   "retention.ms" -1
-   "retention.bytes" -1})
-
-(defn create-topic!
-  [zk-client topic]
-  (when-not (topics/topic-exists? zk-client topic)
-    (topics/create-topic!
-     zk-client
-     topic
-     1
-     (count (zk-cluster/broker-ids zk-client))
-     topic-config)))
-
-(defrecord KafkaUsageLogger [config zk-config topic]
+(defrecord KafkaUsageLogger [config topic]
   component/Lifecycle
   (start [this]
     (if (:instance this)
       this
       (do
-        (with-open [zk (make-zk-utils zk-config false)]
-          (create-topic! zk topic))
         (let [o (make-default-producer-options)
               p (make-producer
                  config
@@ -132,19 +110,18 @@
         (log/warn "can't log usage: no Kafka producer instance")))))
 
 (defn kafka-usage-logger
-  [broker-list zk-servers]
+  [broker-list topic]
   (->KafkaUsageLogger
    {:bootstrap.servers broker-list}
-   {:servers zk-servers}
-   *default-kafka-topic*))
+   topic))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; system
 
 (defn system
-  [{:keys [port broker-list zk-servers]}]
+  [{:keys [port broker-list topic]}]
   (component/system-using
    (component/system-map
     :tcp-listener (tcp-listener (or port *default-port*))
-    :kafka-logger (kafka-usage-logger broker-list zk-servers))
+    :kafka-logger (kafka-usage-logger broker-list topic))
    {:tcp-listener {:usage-logger :kafka-logger}}))

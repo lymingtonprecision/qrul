@@ -20,11 +20,26 @@ people running Quick Reports and logs them to Apache Kafka.
 
 ## Running the service
 
+First, ensure you have a Kafka topic to which it can log
+events—something like:
+
+    kafka-topics.sh \
+      --create \
+      --topic quick-report-usage \
+      --zookeeper zookeeper:2181 \
+      --replication-factor 1 \
+      --partitions 1 \
+      --config compression.type=lz4 \
+      --config cleanup.policy=delete \
+      --config retention.ms=-1 \
+      --config retention.bytes=-1
+
+… establishes a topic with some sensible defaults.
+
 The following environment variables must be provided:
 
 * `KAFKA_BROKERS`, a comma separated list of Kafka brokers to publish to
-* `ZK_SERVERS`, a comma separated list of the ZooKeeper servers used by
-  the Kafka brokers
+* `TOPIC`, the name of the topic to log events to
 
 You may optionally specify the port on which to run the service:
 
@@ -44,7 +59,7 @@ You can then run the service:
           -d \
           --name=qrul \
           -e KAFKA_BROKERS=<broker list> \
-          -e ZK_SERVERS=<server list> \
+          -e TOPIC=quick-report-usage \
           lymingtonprecision/qrul
 
 ## Logging Quick Report Usage

@@ -27,7 +27,6 @@
 
                  ;; kafka
                  [ymilky/franzy "0.0.1" :exclusions [log4j]]
-                 [ymilky/franzy-admin "0.0.1" :exclusions [log4j]]
                  [ymilky/franzy-json "0.0.1" :exclusions [log4j]]]
 
   :main qrul.main

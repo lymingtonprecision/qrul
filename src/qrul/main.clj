@@ -13,7 +13,7 @@
 (defn env-config []
   {:port (some-> (:qrul-port env) Integer/parseInt)
    :broker-list (csv-list (:kafka-brokers env))
-   :zk-servers (csv-list (:zk-servers env))})
+   :topic (:topic env)})
 
 (defn -main [& args]
   (let [sys (component/start (system (env-config)))]
