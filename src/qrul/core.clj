@@ -1,5 +1,7 @@
 (ns qrul.core
   (:require [clojure.string :as string]
+            [clojure.java.io :as io]
+            [cheshire.core :as cheshire]
             [com.stuartsierra.component :as component]
             [taoensso.timbre :as log]
             [clj-time.coerce :as time.coerce]
@@ -13,8 +15,9 @@
             ;; kafka publisher
             [franzy.clients.producer.client :refer [make-producer]]
             [franzy.clients.producer.defaults :refer [make-default-producer-options]]
-            [franzy.clients.producer.protocols :as producer]
-            [franzy.serialization.json.serializers :refer [json-serializer]]))
+            [franzy.clients.producer.protocols :as producer])
+  (:import [java.io ByteArrayOutputStream]
+           [org.apache.kafka.common.serialization Serializer]))
 
 (def ^:dynamic *default-port* 13478)
 
@@ -31,6 +34,21 @@
 
 (defn date->iso8601 [d]
   (time.format/unparse iso8601 (time.coerce/from-date d)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; serialization
+
+(defn json-serializer []
+  (reify
+    Serializer
+    (close [this])
+    (configure [this configs is-key?])
+    (serialize [this topic payload]
+      (when payload
+        (with-open [ba (ByteArrayOutputStream.)
+                    w (io/writer ba)]
+          (cheshire/generate-stream payload w)
+          (.toByteArray ba))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tcp server

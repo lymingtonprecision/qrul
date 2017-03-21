@@ -25,9 +25,11 @@
                  ;; server socket
                  [aleph "0.4.3"]
 
+                 ;; serialization
+                 [cheshire "5.7.0"]
+
                  ;; kafka
-                 [ymilky/franzy "0.0.1" :exclusions [log4j]]
-                 [ymilky/franzy-json "0.0.1" :exclusions [log4j]]]
+                 [ymilky/franzy "0.0.1" :exclusions [log4j]]]
 
   :main qrul.main
 
