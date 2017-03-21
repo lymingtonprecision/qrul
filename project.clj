@@ -29,7 +29,7 @@
                  [cheshire "5.7.0"]
 
                  ;; kafka
-                 [ymilky/franzy "0.0.1" :exclusions [log4j]]]
+                 [org.apache.kafka/kafka-clients "0.10.2.0"]]
 
   :main qrul.main
 

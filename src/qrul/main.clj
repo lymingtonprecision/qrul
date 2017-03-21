@@ -6,13 +6,9 @@
             [qrul.core :refer [system]])
   (:gen-class))
 
-(defn csv-list [s]
-  (when-not (string/blank? s)
-    (mapv string/trim (string/split s #","))))
-
 (defn env-config []
   {:port (some-> (:qrul-port env) Integer/parseInt)
-   :broker-list (csv-list (:kafka-brokers env))
+   :broker-list (:kafka-brokers env)
    :topic (:topic env)})
 
 (defn -main [& args]

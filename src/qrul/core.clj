@@ -10,13 +10,9 @@
             ;; tcp server
             [aleph.tcp :as tcp]
             [byte-streams :as bytes]
-            [manifold.stream :as stream]
-
-            ;; kafka publisher
-            [franzy.clients.producer.client :refer [make-producer]]
-            [franzy.clients.producer.defaults :refer [make-default-producer-options]]
-            [franzy.clients.producer.protocols :as producer])
+            [manifold.stream :as stream])
   (:import [java.io ByteArrayOutputStream]
+           [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]
            [org.apache.kafka.common.serialization Serializer]))
 
 (def ^:dynamic *default-port* 13478)
@@ -102,19 +98,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; kafka
 
+(defn ->properties
+  [kvs]
+  (into {} (for [[k v] kvs] [(name k) (str v)])))
+
+(defn ->record [topic key value]
+  (ProducerRecord. topic key value))
+
+(defn kafka-producer [config key-serializer value-serializer]
+  (KafkaProducer. (->properties config) key-serializer value-serializer))
+
 (defrecord KafkaUsageLogger [config topic]
   component/Lifecycle
   (start [this]
     (if (:instance this)
       this
       (do
-        (let [o (make-default-producer-options)
-              p (make-producer
-                 config
-                 (json-serializer)
-                 (json-serializer)
-                 o)]
-          (assoc this :instance p :options o)))))
+        (let [s (json-serializer)
+              p (kafka-producer config s s)]
+          (assoc this :instance p)))))
   (stop [this]
     (when-let [p (:instance this)] (.close p))
     (assoc this :instance nil))
@@ -124,7 +126,7 @@
     (let [ur {:quick-report qr-id :user-id user-id :timestamp (date->iso8601 ts)}]
       (log/debug "logging usage" ur)
       (if-let [p (:instance this)]
-        (producer/send-async! p topic 0 nil ur (:options this))
+        (.send p (->record topic nil ur))
         (log/warn "can't log usage: no Kafka producer instance")))))
 
 (defn kafka-usage-logger
