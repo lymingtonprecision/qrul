@@ -18,6 +18,11 @@ track the usage of the reports.
 So, that’s what this is: a simple TCP server that listens for reports of
 people running Quick Reports and logs them to Apache Kafka.
 
+## Compatability
+
+The current version uses the 0.10.2.0 Kafka Producer and so must be used
+with Kafka servers running a 0.10 release or later.
+
 ## Running the service
 
 First, ensure you have a Kafka topic to which it can log
